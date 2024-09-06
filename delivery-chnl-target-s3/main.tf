@@ -27,39 +27,45 @@ locals {
       "module_provider" = "ACAI GmbH",
       "module_name"     = "terraform-aws-acf-configservice",
       "module_source"   = "github.com/acai-consulting/terraform-aws-acf-configservice",
-      "module_feature"  = "core-logging",
+      "module_feature"  = "delivery-chnl-target-s3",
       "module_version"  = /*inject_version_start*/ "1.0.0" /*inject_version_end*/
     }
-  )  
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ¦ LOGGING TARGET ACCOUNT - KMS KEY
+# ¦ BUCKET - KMS KEY
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_kms_key" "aws_config_bucket_cmk" {
   count = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? 1 : 0
+
   description             = "Encryption key for object uploads to S3 bucket ${var.settings.aws_config.s3_delivery.bucket_name}"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.aws_config_bucket_cmk.json
+  policy                  = data.aws_iam_policy_document.aws_config_bucket_cmk[0].json
   tags                    = var.resource_tags
 }
 
 data "aws_iam_policy_document" "aws_config_bucket_cmk" {
+  count = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? 1 : 0
+
   # enable IAM in logging account
-  source_policy_documents = var.logging_target_bucket_kms_cmk_grants == null ? null : [var.logging_target_bucket_kms_cmk_grants]
+  source_policy_documents = var.settings.aws_config.s3_delivery.kms_cmk_grants == null ? null : [var.settings.aws_config.s3_delivery.kms_cmk_grants]
 
-  statement {
-    sid    = "Enable IAM User Permissions"
-    effect = "Allow"
+  dynamic "statement" {
+    for_each = var.settings.aws_config.s3_delivery.enable_iam_user_permissions ? [1] : []
+    content {
+      sid    = "Enable IAM User Permissions"
+      effect = "Allow"
 
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.logging_target.account_id}:root"]
+      principals {
+        type        = "AWS"
+        identifiers = ["arn:aws:iam::${data.aws_caller_identity.logging_target.account_id}:root"]
+      }
+
+      actions   = ["kms:*"]
+      resources = ["*"]
     }
-
-    actions   = ["kms:*"]
-    resources = ["*"]
   }
 
   # allow org master account to encrypt in the cloudtrail encryption context
@@ -86,8 +92,10 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
 }
 
 resource "aws_kms_alias" "aws_config_bucket_cmk" {
+  count = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? 1 : 0
+
   name          = "alias/${replace(var.settings.aws_config.s3_delivery.bucket_name, ".", "-")}-key"
-  target_key_id = aws_kms_key.aws_config_bucket_cmk.key_id
+  target_key_id = aws_kms_key.aws_config_bucket_cmk[0].key_id
 }
 
 
@@ -98,7 +106,7 @@ resource "aws_kms_alias" "aws_config_bucket_cmk" {
 resource "aws_s3_bucket" "aws_config_bucket" {
   #checkov:skip=CKV_AWS_144 : No Cross-Region Bucket replication 
   bucket        = var.settings.aws_config.s3_delivery.bucket_name
-  force_destroy = var.settings.aws_config.s3_delivery.force_destroy
+  force_destroy = var.s3_delivery_bucket_force_destroy
   tags          = local.resource_tags
 }
 
@@ -128,7 +136,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "aws_config_bucket
         sse_algorithm = "AES256"
       }
     }
-  } 
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "aws_config_bucket" {
@@ -147,8 +155,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "aws_config_bucket" {
 }
 
 resource "aws_s3_bucket_public_access_block" "aws_config_bucket" {
-  bucket = aws_s3_bucket.aws_config_bucket.id
-
+  bucket                  = aws_s3_bucket.aws_config_bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -186,13 +193,13 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name), 
+          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name),
           "////", "/"
         )
       ]
     }
   }
- statement {
+  statement {
     sid    = "AWSConfigBucketExistenceCheck"
     effect = "Allow"
     principals {
@@ -216,12 +223,12 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name), 
+          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name),
           "////", "/"
         )
       ]
     }
-  }  
+  }
   statement {
     sid    = "AWSConfigBucketDelivery"
     effect = "Allow"
@@ -257,7 +264,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name), 
+          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name),
           "////", "/"
         )
       ]
@@ -286,7 +293,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       condition {
         test     = "StringNotEquals"
         variable = "s3:x-amz-server-side-encryption-aws-kms-key-id"
-        values   = [aws_kms_key.aws_config_bucket_cmk.arn]
+        values   = [aws_kms_key.aws_config_bucket_cmk[0].arn]
       }
     }
   }

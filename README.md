@@ -30,6 +30,36 @@
 <!-- USAGE -->
 ## Usage
 
+### Settings
+
+```hcl
+# ¦ security - aws_config
+aws_config = {
+  aggregation = {
+    aggregator_name        = "aws-config-aggregator"
+    aggregator_role_name   = "aws-config-aggregator-role"
+    aggregation_account_id = try(var.core_configuration.aws_config.aggregation.aggregation_account_id, local.core_accounts.security) 
+  }
+  delivery_channel_target = {    
+    central_s3 = {
+      bucket_name               = format("aws-config-logs-%s", local.core_accounts.logging)
+      bucket_sse_algorithm      = "CMK" # or "AES256"
+      bucket_days_to_glacier    = 90
+      bucket_days_to_expiration = 360
+      bucket_kms_cmk_arn = try(var.core_configuration.aws_config.logging_target.bucket_kms_cmk_arn, null)
+    }
+  }
+  account_baseline = {
+    iam_role_name         = "aws-config-recorder-role"
+    iam_role_path         = "/"
+    recorder_name         = "aws-config-recorder"
+    delivery_channel_name = "aws-config-recorder-delivery-channel"
+  }
+}
+```
+
+
+
 ### REPLACE_ME
 ```hcl
 module "REPLACE_ME" {

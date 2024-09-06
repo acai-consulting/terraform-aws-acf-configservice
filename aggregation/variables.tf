@@ -3,17 +3,9 @@ variable "settings" {
   type = object({
     aws_config = optional(object({
       aggregation = object({
-        aggregator_name      = optional(string, "acf_config_aggregator")
-        aggregator_role_name = optional(string, "acf_config_aggregator_role")
+        aggregator_name      = optional(string, "aws-config-aggregator")
+        aggregator_role_name = optional(string, "aws-config-aggregator-role")
       })
-    }), null)
-    aws_security_hub = optional(object({
-
-
-    }), null)
-    amazon_guardduty = optional(object({
-
-
     }), null)
   })
 }

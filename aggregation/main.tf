@@ -28,7 +28,7 @@ locals {
       "module_provider" = "ACAI GmbH",
       "module_name"     = "terraform-aws-acf-configservice",
       "module_source"   = "github.com/acai-consulting/terraform-aws-acf-configservice",
-      "module_feature"  = "core-aggregation",
+      "module_feature"  = "aggregation",
       "module_version"  = /*inject_version_start*/ "1.0.0" /*inject_version_end*/
     }
   )
@@ -56,6 +56,7 @@ data "aws_iam_policy_document" "aws_config_aggregator_role_trust" {
 
 resource "aws_iam_role_policy_attachment" "aws_config_aggregator_role_permissions" {
   role       = aws_iam_role.aws_config_aggregator_role.name
+  # https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSConfigRoleForOrganizations.html
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSConfigRoleForOrganizations"
 }
 
@@ -73,36 +74,3 @@ resource "aws_config_configuration_aggregator" "aws_config_aggregator" {
     aws_iam_role_policy_attachment.aws_config_aggregator_role_permissions
   ]
 }
-
-# ---------------------------------------------------------------------------------------------------------------------
-# ¦ SECURITY HUB - AGGREGATOR
-# ---------------------------------------------------------------------------------------------------------------------
-resource "aws_securityhub_finding_aggregator" "sh_aggregator" {
-  count        = can(var.settings.aws_security_hub) ? 1 : 0
-  linking_mode = "ALL_REGIONS"
-}
-
-resource "aws_securityhub_organization_configuration" "sh_aggregator" {
-  count                 = can(var.settings.aws_security_hub) ? 1 : 0
-  auto_enable           = false
-  auto_enable_standards = "DEFAULT"
-  organization_configuration {
-    configuration_type = "CENTRAL"
-  }
-
-  depends_on = [aws_securityhub_finding_aggregator.sh_aggregator[0]]
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# ¦ GUARDDUTY - AGGREGATOR
-# ---------------------------------------------------------------------------------------------------------------------
-data "aws_guardduty_detector" "gd_aggregator" {
-  count = can(var.settings.amazon_guardduty) ? 1 : 0
-}
-
-resource "aws_guardduty_organization_configuration" "gd_aggregator" {
-  count                            = can(var.settings.amazon_guardduty) ? 1 : 0
-  detector_id                      = data.aws_guardduty_detector.gd_aggregator[0].id
-  auto_enable_organization_members = "ALL"
-}
-

@@ -16,16 +16,18 @@ variable "aws_config_settings" {
     aggregation = object({
       aggregation_account_id = string
     })
-    s3_delivery = optional(object({
-      bucket_name           = string
-      bucket_kms_cmk_arn    = string
+    delivery_channel_target = optional(object({
+      central_s3 = optional(object({
+        bucket_name        = string
+        bucket_kms_cmk_arn = string
+      }), null)
     }), null)
     account_baseline = object({
       # compliant with CIS AWS 
-      config_iam_role_name     = optional(string, "acf-config-recorder-role")
-      config_iam_role_path     = optional(string, "/")
-      config_recorder_name     = optional(string, "acf-config-recorder")
-      delivery_channel_name    = optional(string, "acf-config-recorder-delivery-channel")
+      iam_role_name         = optional(string, "aws-config-recorder-role")
+      iam_role_path         = optional(string, "/")
+      recorder_name         = optional(string, "aws-config-recorder")
+      delivery_channel_name = optional(string, "aws-config-recorder-delivery-channel")
     })
   })
 }
