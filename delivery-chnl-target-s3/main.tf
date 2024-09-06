@@ -97,7 +97,7 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
       test     = "StringEquals"
       variable = "aws:PrincipalOrgID"
       values = [
-        var.organization_id
+        data.aws_organizations_organization.current.id
       ]
     }
     condition {
@@ -146,7 +146,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "aws_config_bucket
     for_each = local.kms_cmk == true ? [1] : []
     content {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = aws_kms_key.aws_config_bucket_key[0].id
+        kms_master_key_id = aws_kms_key.aws_config_bucket_cmk[0].id
         sse_algorithm     = "aws:kms"
       }
     }
@@ -168,7 +168,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "aws_config_bucket" {
     id     = "Expiration"
     status = "Enabled"
     expiration {
-      days = var.aws_config_settings.delivery_channel_target.central_s3.days_to_expiration
+      days = var.aws_config_settings.delivery_channel_target.central_s3.bucket_days_to_expiration
     }
     noncurrent_version_expiration {
       noncurrent_days = 1
@@ -236,7 +236,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       test     = "StringEquals"
       variable = "aws:PrincipalOrgID"
       values = [
-        var.organization_id
+        data.aws_organizations_organization.current.id
       ]
     }
     condition {
@@ -277,7 +277,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       test     = "StringEquals"
       variable = "aws:PrincipalOrgID"
       values = [
-        var.organization_id
+        data.aws_organizations_organization.current.id
       ]
     }
     condition {

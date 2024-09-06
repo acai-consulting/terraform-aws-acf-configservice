@@ -125,7 +125,7 @@ resource "aws_config_configuration_recorder_status" "aws_config_recorder_${lower
 
 %{ if config_s3_delivery == true ~}
 resource "aws_config_delivery_channel" "aws_config_recorder_${lower(replace(primary_region, "-", "_"))}" {
-  name           = "${config_s3_delivery_channel_name}"
+  name           = "${config_delivery_channel_name}"
   s3_bucket_name = "${config_s3_delivery_bucket_name}"
   s3_kms_key_arn = "${config_s3_delivery_bucket_kms_cmk_arn}"
   depends_on = [
