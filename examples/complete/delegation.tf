@@ -6,10 +6,6 @@ data "aws_region" "org_mgmt" {
 }
 
 locals {
-  regions_settings = {
-    primary_region = "eu-central-1"
-    regions        = ["eu-central-1", "us-east-2"]
-  }
   delegations = [
     {
       regions            = local.regions_settings.regions

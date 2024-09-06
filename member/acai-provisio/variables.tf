@@ -16,14 +16,14 @@ variable "aws_config_settings" {
     aggregation = object({
       aggregation_account_id = string
     })
-    delivery_channel_target = optional(object({
+    delivery_channel_target = object({
       central_s3 = optional(object({
         bucket_name = string
         kms_cmk = optional(object({
           arn = optional(string, "")
         }), null)
       }), null)
-    }), null)
+    })
     account_baseline = object({
       # compliant with CIS AWS 
       iam_role_name         = optional(string, "aws-config-recorder-role")

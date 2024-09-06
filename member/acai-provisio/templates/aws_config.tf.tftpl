@@ -48,7 +48,7 @@ resource "aws_iam_role_policy_attachment" "config_role_attachment_${lower(replac
 resource "aws_iam_role_policy" "aws_config_delivery_permission" {
   name   = "DeliveryPermissoinForAwsConfig"
   role   = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.name
-  policy = data.aws_iam_policy_document.aws_config_delivery_permission${lower(replace(primary_region, "-", "_"))}.json
+  policy = data.aws_iam_policy_document.aws_config_delivery_permission_${lower(replace(primary_region, "-", "_"))}.json
 }
 
 # https://docs.aws.amazon.com/config/latest/developerguide/iamrole-permissions.html
@@ -61,7 +61,7 @@ data "aws_iam_policy_document" "aws_config_delivery_permission_${lower(replace(p
       "kms:Decrypt",
       "kms:GenerateDataKey"
     ]
-    resources = [${config_s3_delivery_bucket_kms_cmk_arn}]
+    resources = ["${config_s3_delivery_bucket_kms_cmk_arn}"]
   }
 %{ endif ~}
   statement {
@@ -74,7 +74,7 @@ data "aws_iam_policy_document" "aws_config_delivery_permission_${lower(replace(p
     resources = [
       format(
         "arn:aws:s3:::%s",
-        ${config_s3_delivery_bucket_name}
+        "${config_s3_delivery_bucket_name}"
       )
     ]
   }
@@ -88,7 +88,7 @@ data "aws_iam_policy_document" "aws_config_delivery_permission_${lower(replace(p
     resources = [
       format(
         "arn:aws:s3:::%s/AWSLogs/%s/*",
-        ${config_s3_delivery_bucket_name},
+        "${config_s3_delivery_bucket_name}",
         data.aws_caller_identity.current.account_id
       )
     ]

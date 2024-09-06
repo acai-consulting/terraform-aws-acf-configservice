@@ -105,7 +105,7 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
+          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
           "////", "/"
         )
       ]
@@ -214,7 +214,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
+          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
           "////", "/"
         )
       ]
@@ -244,7 +244,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
+          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
           "////", "/"
         )
       ]
@@ -270,11 +270,6 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
     }
     condition {
       test     = "StringEquals"
-      variable = "aws:PrincipalIsAWSService"
-      values   = ["true"]
-    }
-    condition {
-      test     = "StringEquals"
       variable = "aws:PrincipalOrgID"
       values = [
         data.aws_organizations_organization.current.id
@@ -285,7 +280,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
+          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
           "////", "/"
         )
       ]

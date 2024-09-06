@@ -23,10 +23,15 @@ locals {
   })
 
   non_primary_regions = tolist(setsubtract(var.provisio_settings.provisio_regions.regions, [var.provisio_settings.provisio_regions.primary_region]))
-  delivery_target_s3 =  try(var.aws_config_settings.aws_config.delivery_channel_target.central_s3, null)  != null
-  bucket_kms_cmk_arn =  try(var.aws_config_settings.aws_config.delivery_channel_target.central_s3.kms_cmk.arn, "") 
+  delivery_target_s3 =  try(var.aws_config_settings.delivery_channel_target.central_s3, null)  != null
+  bucket_kms_cmk_arn =  try(var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.arn, "") 
   provisio_package_files = merge(
     {
+      "requirements.tf" = templatefile("${path.module}/templates/requirements.tf.tftpl", {
+        non_primary_regions  = local.non_primary_regions
+        terraform_version    = ">= 1.5.7",
+        provider_aws_version = ">= 5.00",
+      })
       "aws_config.tf" = templatefile("${path.module}/templates/aws_config.tf.tftpl", {
         primary_region                        = var.provisio_settings.provisio_regions.primary_region
         non_primary_regions                   = local.non_primary_regions

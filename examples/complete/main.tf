@@ -27,6 +27,10 @@ data "aws_caller_identity" "logging" {
 # ¦ LOCALS
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
+  regions_settings = {
+    primary_region = "eu-central-1"
+    regions        = ["eu-central-1", "us-east-2"]
+  }
   aws_config_settings = {
     aggregation = {
       aggregator_name      = "aws-config-aggregator"
@@ -98,7 +102,6 @@ locals {
   )
 }
 
-
 module "member_files" {
   source = "../../member/acai-provisio"
 
@@ -106,5 +109,13 @@ module "member_files" {
     provisio_regions = local.regions_settings
   }
   aws_config_settings = local.member_input
+}
 
+
+# Loop through the map and create a file for each entry
+resource "local_file" "package_files" {
+  for_each = module.member_files.provisio_package_files
+
+  filename = "${path.module}/../member-provisio/rendered/${each.key}" # Each key becomes the filename
+  content  = each.value                                               # Each value becomes the file content
 }
