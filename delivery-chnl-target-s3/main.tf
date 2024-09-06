@@ -188,7 +188,6 @@ resource "aws_s3_bucket_public_access_block" "aws_config_bucket" {
 resource "aws_s3_bucket_policy" "awsconfig_bucket" {
   bucket   = resource.aws_s3_bucket.aws_config_bucket.id
   policy   = data.aws_iam_policy_document.awsconfig_bucket.json
-  provider = aws.logging_target
 }
 
 data "aws_iam_policy_document" "awsconfig_bucket" {

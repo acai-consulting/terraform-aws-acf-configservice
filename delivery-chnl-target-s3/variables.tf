@@ -3,7 +3,7 @@ variable "aws_config_settings" {
   type = object({
     delivery_channel_target = object({
       central_s3 = object({
-        bucket_name          = string
+        bucket_name = string
         kms_cmk = optional(object({
           key_alias                   = optional(string, "aws-config-recorder-logs-key")
           deletion_window_in_days     = optional(number, 30)
@@ -26,7 +26,8 @@ variable "aws_config_settings" {
 
 variable "s3_delivery_bucket_force_destroy" {
   description = "This is for automated testing purposes only!"
-  type        = optional(bool, false)
+  type        = bool
+  default     = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -38,25 +39,3 @@ variable "resource_tags" {
   default     = {}
 }
 
-
-
-variable "organization_id" {
-  description = "AWS Organization Id."
-  type        = string
-}
-
-variable "aggregation_aggregator_name" {
-  description = "Name of the AWS Config Aggregator."
-  type        = string
-  default     = "foundation_aws_config_aggregator"
-}
-
-variable "aggregation_aggregator_role_name" {
-  description = "Name of the IAM Role for the AWS Config Aggregator."
-  type        = string
-  default     = "foundation_aws_config_aggregator_role"
-}
-
-variable "logging_target_bucket_kms_cmk_grants" {
-  default = null
-}

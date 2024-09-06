@@ -1,6 +1,6 @@
 variable "aws_config_settings" {
   description = "AWS Config- Aggregation Settings."
-  type = optional(object({
+  type = object({
     aggregation = optional(object({
       aggregator_name      = optional(string, "aws-config-aggregator")
       aggregator_role_name = optional(string, "aws-config-aggregator-role")
@@ -9,12 +9,11 @@ variable "aws_config_settings" {
         aggregator_name      = "aws-config-aggregator"
         aggregator_role_name = "aws-config-aggregator-role"
     })
-    }),
-    {
-      aggregator_name      = "aws-config-aggregator"
-      aggregator_role_name = "aws-config-aggregator-role"
-    }
-  )
+  })
+  default = {
+    aggregator_name      = "aws-config-aggregator"
+    aggregator_role_name = "aws-config-aggregator-role"
+  }
 }
 
 
