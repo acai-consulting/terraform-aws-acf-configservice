@@ -93,7 +93,7 @@ locals {
     {
       delivery_channel_target = {
         central_s3 = merge(local.aws_config_settings.delivery_channel_target.central_s3, {
-          kms_cmk = merge(local.aws_config_settings.delivery_channel_target.central_s3.kms_cmk, {
+          kms_cmk = merge(try(local.aws_config_settings.delivery_channel_target.central_s3.kms_cmk, {}), {
             arn = try(module.s3_delivery_channel.configuration_to_write.delivery_channel_target.central_s3.kms_cmk.arn, "")
           })
         })

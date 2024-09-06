@@ -94,15 +94,10 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
     }
     condition {
       test     = "StringEquals"
-      variable = "aws:PrincipalOrgID"
+      variable = "aws:SourceOrgID"
       values = [
         data.aws_organizations_organization.current.id
       ]
-    }
-    condition {
-      test     = "ArnLike"
-      variable = "aws:PrincipalArn"
-      values   = [local.member_iam_rolename_with_path]
     }
   }
 }

@@ -46,7 +46,7 @@ resource "aws_iam_role_policy_attachment" "config_role_attachment_${lower(replac
 
 %{ if config_s3_delivery == true ~}
 resource "aws_iam_role_policy" "aws_config_delivery_permission" {
-  name   = "DeliveryPermissoinForAwsConfig"
+  name   = "DeliveryPermissionForAwsConfig"
   role   = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.name
   policy = data.aws_iam_policy_document.aws_config_delivery_permission_${lower(replace(primary_region, "-", "_"))}.json
 }
@@ -119,7 +119,9 @@ resource "aws_config_configuration_recorder" "aws_config_recorder_${lower(replac
 resource "aws_config_delivery_channel" "aws_config_recorder_${lower(replace(primary_region, "-", "_"))}" {
   name           = "${config_delivery_channel_name}"
   s3_bucket_name = "${config_s3_delivery_bucket_name}"
+%{ if config_s3_delivery_bucket_kms_cmk_arn != "" ~}
   s3_kms_key_arn = "${config_s3_delivery_bucket_kms_cmk_arn}"
+%{ endif ~}
   depends_on = [
     aws_config_configuration_recorder.aws_config_recorder_${lower(replace(primary_region, "-", "_"))}
   ]
@@ -142,7 +144,7 @@ resource "aws_config_configuration_recorder" "aws_config_recorder_${lower(replac
   role_arn = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.arn
   recording_group {
     all_supported = true
-    include_global_resource_types = false  // TODO check
+    include_global_resource_types = false 
   }
   provider = aws.${lower(replace(region, "-", "_"))}
 }
@@ -151,7 +153,9 @@ resource "aws_config_configuration_recorder" "aws_config_recorder_${lower(replac
 resource "aws_config_delivery_channel" "aws_config_recorder_${lower(replace(region, "-", "_"))}" {
   name           = "${config_delivery_channel_name}"
   s3_bucket_name = "${config_s3_delivery_bucket_name}"
+%{ if config_s3_delivery_bucket_kms_cmk_arn != "" ~}
   s3_kms_key_arn = "${config_s3_delivery_bucket_kms_cmk_arn}"
+%{ endif ~}
   depends_on = [
     aws_config_configuration_recorder.aws_config_recorder_${lower(replace(region, "-", "_"))}
   ]
