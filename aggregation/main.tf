@@ -39,7 +39,7 @@ locals {
 # ¦ AWS CONFIG AGGREGATOR ROLE
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_iam_role" "aws_config_aggregator_role" {
-  name               = var.settings.aws_config.aggregation.aggregator_role_name
+  name               = var.aws_config_settings.aggregation.aggregator_role_name
   assume_role_policy = data.aws_iam_policy_document.aws_config_aggregator_role_trust.json
 }
 
@@ -65,7 +65,7 @@ resource "aws_iam_role_policy_attachment" "aws_config_aggregator_role_permission
 # ¦ AWS CONFIG AGGREGATOR
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_config_configuration_aggregator" "aws_config_aggregator" {
-  name = var.settings.aws_config.aggregation.aggregator_name
+  name = var.aws_config_settings.aggregation.aggregator_name
   organization_aggregation_source {
     all_regions = true
     role_arn    = aws_iam_role.aws_config_aggregator_role.arn

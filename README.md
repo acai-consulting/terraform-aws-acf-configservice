@@ -38,15 +38,20 @@ aws_config = {
   aggregation = {
     aggregator_name        = "aws-config-aggregator"
     aggregator_role_name   = "aws-config-aggregator-role"
-    aggregation_account_id = try(var.core_configuration.aws_config.aggregation.aggregation_account_id, local.core_accounts.security) 
+    aggregation_account_id = try(var.aws_config_configuration.aggregation.aggregation_account_id, local.core_accounts.security) 
   }
   delivery_channel_target = {    
     central_s3 = {
       bucket_name               = format("aws-config-logs-%s", local.core_accounts.logging)
-      bucket_sse_algorithm      = "CMK" # or "AES256"
+      kms_cmk = {
+        key_alias                   = "aws-config-recorder-logs-key"
+        deletion_window_in_days     = 30
+        additional_kms_cmk_grants   = ""
+        enable_iam_user_permissions = true
+        arn = try(var.aws_config_configuration.delivery_channel_target.central_s3.kms_cmk.arn, null)
+      }
       bucket_days_to_glacier    = 90
       bucket_days_to_expiration = 360
-      bucket_kms_cmk_arn = try(var.core_configuration.aws_config.logging_target.bucket_kms_cmk_arn, null)
     }
   }
   account_baseline = {

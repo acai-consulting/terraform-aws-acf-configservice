@@ -53,6 +53,7 @@ resource "aws_iam_role_policy" "aws_config_delivery_permission" {
 
 # https://docs.aws.amazon.com/config/latest/developerguide/iamrole-permissions.html
 data "aws_iam_policy_document" "aws_config_delivery_permission_${lower(replace(primary_region, "-", "_"))}" {
+%{ if config_s3_delivery_bucket_kms_cmk_arn != "" ~}
   statement {
     sid    = "AWSConfigBucketKmsCmk"
     effect = "Allow"
@@ -62,6 +63,7 @@ data "aws_iam_policy_document" "aws_config_delivery_permission_${lower(replace(p
     ]
     resources = [${config_s3_delivery_bucket_kms_cmk_arn}]
   }
+%{ endif ~}
   statement {
     sid    = "AWSConfigBucketPermissionsCheck"
     effect = "Allow"

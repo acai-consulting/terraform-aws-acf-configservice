@@ -18,8 +18,10 @@ variable "aws_config_settings" {
     })
     delivery_channel_target = optional(object({
       central_s3 = optional(object({
-        bucket_name        = string
-        bucket_kms_cmk_arn = string
+        bucket_name = string
+        kms_cmk = optional(object({
+          arn = optional(string, "")
+        }), null)
       }), null)
     }), null)
     account_baseline = object({

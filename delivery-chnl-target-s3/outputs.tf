@@ -1,9 +1,11 @@
 output "configuration_to_write" {
-  value = {
-    aws_config = {
-      aggregation = {
-        aggregation_account_id = data.aws_caller_identity.current.account_id
+  value = local.kms_cmk ? {
+    delivery_channel_target = {
+      central_s3 = {
+        kms_cmk = {
+          arn = aws_kms_key.aws_config_bucket_cmk.arn
+        }
       }
     }
-  }
+  } : {}
 }

@@ -15,7 +15,8 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ DATA
 # ---------------------------------------------------------------------------------------------------------------------
-data "aws_caller_identity" "this" {}
+data "aws_caller_identity" "current" {}
+data "aws_organizations_organization" "current" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ LOCALS
@@ -34,33 +35,38 @@ locals {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ¦ BUCKET - KMS KEY
+# ¦ OPTIONAL BUCKET - KMS KEY
 # ---------------------------------------------------------------------------------------------------------------------
-resource "aws_kms_key" "aws_config_bucket_cmk" {
-  count = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? 1 : 0
+locals {
+  kms_cmk = var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk == null ? false : true
+}
 
-  description             = "Encryption key for object uploads to S3 bucket ${var.settings.aws_config.s3_delivery.bucket_name}"
-  deletion_window_in_days = 30
+resource "aws_kms_key" "aws_config_bucket_cmk" {
+  count = local.kms_cmk ? 1 : 0
+
+  description             = "Encryption key for object uploads to S3 bucket ${var.aws_config_settings.delivery_channel_target.central_s3.bucket_name}"
+  deletion_window_in_days = var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.deletion_window_in_days
   enable_key_rotation     = true
   policy                  = data.aws_iam_policy_document.aws_config_bucket_cmk[0].json
   tags                    = var.resource_tags
 }
 
+# https://docs.aws.amazon.com/config/latest/developerguide/s3-kms-key-policy.html
 data "aws_iam_policy_document" "aws_config_bucket_cmk" {
-  count = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? 1 : 0
+  count = local.kms_cmk ? 1 : 0
 
   # enable IAM in logging account
-  source_policy_documents = var.settings.aws_config.s3_delivery.kms_cmk_grants == null ? null : [var.settings.aws_config.s3_delivery.kms_cmk_grants]
+  source_policy_documents = var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.additional_kms_cmk_grants != null ? [var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.additional_kms_cmk_grants] : null
 
   dynamic "statement" {
-    for_each = var.settings.aws_config.s3_delivery.enable_iam_user_permissions ? [1] : []
+    for_each = var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.enable_iam_user_permissions != false ? [1] : []
     content {
       sid    = "Enable IAM User Permissions"
       effect = "Allow"
 
       principals {
         type        = "AWS"
-        identifiers = ["arn:aws:iam::${data.aws_caller_identity.logging_target.account_id}:root"]
+        identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
       }
 
       actions   = ["kms:*"]
@@ -68,7 +74,7 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
     }
   }
 
-  # allow org master account to encrypt in the cloudtrail encryption context
+  # allow member roles
   statement {
     sid    = "AWSConfigKMSPolicy"
     effect = "Allow"
@@ -87,25 +93,41 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
       variable = "aws:ViaAWSService"
       values   = ["true"]
     }
-    # TODO condition to restrict to Member AWS Config Roles only
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalOrgID"
+      values = [
+        var.organization_id
+      ]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "aws:userid"
+      values = [
+        replace(
+          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
+          "////", "/"
+        )
+      ]
+    }
   }
 }
 
 resource "aws_kms_alias" "aws_config_bucket_cmk" {
-  count = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? 1 : 0
+  count = local.kms_cmk ? 1 : 0
 
-  name          = "alias/${replace(var.settings.aws_config.s3_delivery.bucket_name, ".", "-")}-key"
+  name          = "alias/${var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.key_alias}"
   target_key_id = aws_kms_key.aws_config_bucket_cmk[0].key_id
 }
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ¦ LOGGING TARGET ACCOUNT - AWS CONFIG AGGREGATOR BUCKET
+# ¦ AWS CONFIG AGGREGATOR BUCKET
 # ---------------------------------------------------------------------------------------------------------------------
 #tfsec:ignore:avd-aws-0089
 resource "aws_s3_bucket" "aws_config_bucket" {
   #checkov:skip=CKV_AWS_144 : No Cross-Region Bucket replication 
-  bucket        = var.settings.aws_config.s3_delivery.bucket_name
+  bucket        = var.aws_config_settings.delivery_channel_target.central_s3.bucket_name
   force_destroy = var.s3_delivery_bucket_force_destroy
   tags          = local.resource_tags
 }
@@ -121,7 +143,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "aws_config_bucket
   bucket = aws_s3_bucket.aws_config_bucket.id
 
   dynamic "rule" {
-    for_each = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? [1] : []
+    for_each = local.kms_cmk == true ? [1] : []
     content {
       apply_server_side_encryption_by_default {
         kms_master_key_id = aws_kms_key.aws_config_bucket_key[0].id
@@ -130,7 +152,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "aws_config_bucket
     }
   }
   dynamic "rule" {
-    for_each = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "AES256" ? [1] : []
+    for_each = local.kms_cmk == false ? [1] : []
     content {
       apply_server_side_encryption_by_default {
         sse_algorithm = "AES256"
@@ -146,7 +168,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "aws_config_bucket" {
     id     = "Expiration"
     status = "Enabled"
     expiration {
-      days = var.settings.aws_config.s3_delivery.days_to_expiration
+      days = var.aws_config_settings.delivery_channel_target.central_s3.days_to_expiration
     }
     noncurrent_version_expiration {
       noncurrent_days = 1
@@ -185,7 +207,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       test     = "StringEquals"
       variable = "aws:PrincipalOrgID"
       values = [
-        var.organization_id
+        data.aws_organizations_organization.current.id
       ]
     }
     condition {
@@ -193,7 +215,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name),
+          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
           "////", "/"
         )
       ]
@@ -223,7 +245,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name),
+          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
           "////", "/"
         )
       ]
@@ -264,7 +286,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       variable = "aws:userid"
       values = [
         replace(
-          format(":role/%s%s", var.settings.aws_config.account_baseline.config_iam_role_path, var.settings.aws_config.account_baseline.config_iam_role_name),
+          format(":role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
           "////", "/"
         )
       ]
@@ -272,7 +294,7 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
   }
 
   dynamic "statement" {
-    for_each = var.settings.aws_config.s3_delivery.bucket_sse_algorithm == "CMK" ? [1] : []
+    for_each = local.kms_cmk == true ? [1] : []
     content {
       sid    = "RequireKmsCmkEncryption"
       effect = "Deny"

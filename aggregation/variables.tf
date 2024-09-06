@@ -1,13 +1,20 @@
-variable "settings" {
-  description = "Security Baseline Settings."
-  type = object({
-    aws_config = optional(object({
-      aggregation = object({
-        aggregator_name      = optional(string, "aws-config-aggregator")
-        aggregator_role_name = optional(string, "aws-config-aggregator-role")
-      })
-    }), null)
-  })
+variable "aws_config_settings" {
+  description = "AWS Config- Aggregation Settings."
+  type = optional(object({
+    aggregation = optional(object({
+      aggregator_name      = optional(string, "aws-config-aggregator")
+      aggregator_role_name = optional(string, "aws-config-aggregator-role")
+      }),
+      {
+        aggregator_name      = "aws-config-aggregator"
+        aggregator_role_name = "aws-config-aggregator-role"
+    })
+    }),
+    {
+      aggregator_name      = "aws-config-aggregator"
+      aggregator_role_name = "aws-config-aggregator-role"
+    }
+  )
 }
 
 
