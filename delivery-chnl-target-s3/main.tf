@@ -39,6 +39,10 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
   kms_cmk = var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk == null ? false : true
+  member_iam_rolename_with_path = replace(
+    format("arn:aws:iam::*role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
+    "////", "/"
+  )
 }
 
 resource "aws_kms_key" "aws_config_bucket_cmk" {
@@ -89,11 +93,6 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
       identifiers = ["*"]
     }
     condition {
-      test     = "Bool"
-      variable = "aws:ViaAWSService"
-      values   = ["true"]
-    }
-    condition {
       test     = "StringEquals"
       variable = "aws:PrincipalOrgID"
       values = [
@@ -102,13 +101,8 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
     }
     condition {
       test     = "StringLike"
-      variable = "aws:userid"
-      values = [
-        replace(
-          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
-          "////", "/"
-        )
-      ]
+      variable = "aws:PrincipalArn"
+      values   = [local.member_iam_rolename_with_path]
     }
   }
 }
@@ -186,8 +180,8 @@ resource "aws_s3_bucket_public_access_block" "aws_config_bucket" {
 
 
 resource "aws_s3_bucket_policy" "awsconfig_bucket" {
-  bucket   = resource.aws_s3_bucket.aws_config_bucket.id
-  policy   = data.aws_iam_policy_document.awsconfig_bucket.json
+  bucket = resource.aws_s3_bucket.aws_config_bucket.id
+  policy = data.aws_iam_policy_document.awsconfig_bucket.json
 }
 
 data "aws_iam_policy_document" "awsconfig_bucket" {
@@ -202,33 +196,15 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       "s3:GetBucketAcl"
     ]
     resources = [resource.aws_s3_bucket.aws_config_bucket.arn]
-    condition {
-      test     = "StringEquals"
-      variable = "aws:PrincipalOrgID"
-      values = [
-        data.aws_organizations_organization.current.id
-      ]
-    }
-    condition {
-      test     = "StringLike"
-      variable = "aws:userid"
-      values = [
-        replace(
-          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
-          "////", "/"
-        )
-      ]
-    }
   }
   statement {
     sid    = "AWSConfigBucketExistenceCheck"
     effect = "Allow"
     principals {
-      type        = "Service"
-      identifiers = ["config.amazonaws.com"]
+      type        = "AWS"
+      identifiers = ["*"]
     }
     actions = [
-      "s3:GetBucketAcl",
       "s3:ListBucket"
     ]
     resources = [resource.aws_s3_bucket.aws_config_bucket.arn]
@@ -240,22 +216,17 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       ]
     }
     condition {
-      test     = "StringLike"
-      variable = "aws:userid"
-      values = [
-        replace(
-          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
-          "////", "/"
-        )
-      ]
+      test     = "ArnLike"
+      variable = "aws:PrincipalArn"
+      values   = [local.member_iam_rolename_with_path]
     }
   }
   statement {
     sid    = "AWSConfigBucketDelivery"
     effect = "Allow"
     principals {
-      type        = "Service"
-      identifiers = ["config.amazonaws.com"]
+      type        = "AWS"
+      identifiers = ["*"]
     }
     actions = ["s3:PutObject"]
     resources = [
@@ -276,14 +247,9 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       ]
     }
     condition {
-      test     = "StringLike"
-      variable = "aws:userid"
-      values = [
-        replace(
-          format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
-          "////", "/"
-        )
-      ]
+      test     = "ArnLike"
+      variable = "aws:PrincipalArn"
+      values   = [local.member_iam_rolename_with_path]
     }
   }
 

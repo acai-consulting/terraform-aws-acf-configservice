@@ -18,6 +18,10 @@
 <!-- DESCRIPTION -->
 [Terraform][terraform-url] module to deploy REPLACE_ME resources on [AWS][aws-url]
 
+https://medium.com/@bachlmayr/enterprise-governance-with-aws-aggregator-and-conformance-packs-29b80370d34a
+https://dev.to/diegop0s/aws-config-for-organizations-3i6p
+
+
 <!-- ARCHITECTURE -->
 ## Architecture
 
