@@ -40,7 +40,7 @@ locals {
 locals {
   kms_cmk = var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk == null ? false : true
   member_iam_rolename_with_path = replace(
-    format("arn:aws:iam::*role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
+    format("arn:aws:iam::*:role/%s%s", var.aws_config_settings.account_baseline.iam_role_path, var.aws_config_settings.account_baseline.iam_role_name),
     "////", "/"
   )
 }
@@ -89,8 +89,8 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
     resources = ["*"]
 
     principals {
-      type        = "AWS"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
     }
     condition {
       test     = "StringEquals"
@@ -100,7 +100,7 @@ data "aws_iam_policy_document" "aws_config_bucket_cmk" {
       ]
     }
     condition {
-      test     = "StringLike"
+      test     = "ArnLike"
       variable = "aws:PrincipalArn"
       values   = [local.member_iam_rolename_with_path]
     }
@@ -193,40 +193,24 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
       identifiers = ["config.amazonaws.com"]
     }
     actions = [
-      "s3:GetBucketAcl"
-    ]
-    resources = [resource.aws_s3_bucket.aws_config_bucket.arn]
-  }
-  statement {
-    sid    = "AWSConfigBucketExistenceCheck"
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions = [
+      "s3:GetBucketAcl",
       "s3:ListBucket"
     ]
     resources = [resource.aws_s3_bucket.aws_config_bucket.arn]
     condition {
       test     = "StringEquals"
-      variable = "aws:PrincipalOrgID"
+      variable = "aws:SourceOrgID"
       values = [
         data.aws_organizations_organization.current.id
       ]
-    }
-    condition {
-      test     = "ArnLike"
-      variable = "aws:PrincipalArn"
-      values   = [local.member_iam_rolename_with_path]
     }
   }
   statement {
     sid    = "AWSConfigBucketDelivery"
     effect = "Allow"
     principals {
-      type        = "AWS"
-      identifiers = ["*"]
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
     }
     actions = ["s3:PutObject"]
     resources = [
@@ -241,15 +225,10 @@ data "aws_iam_policy_document" "awsconfig_bucket" {
     }
     condition {
       test     = "StringEquals"
-      variable = "aws:PrincipalOrgID"
+      variable = "aws:SourceOrgID"
       values = [
         data.aws_organizations_organization.current.id
       ]
-    }
-    condition {
-      test     = "ArnLike"
-      variable = "aws:PrincipalArn"
-      values   = [local.member_iam_rolename_with_path]
     }
   }
 
