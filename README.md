@@ -80,36 +80,36 @@ Then run this: [`examples/member-provisio`][example-member-provisio]
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.10 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.0 |
 
 ## Providers
 
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.0 |
+No providers.
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_aggregation"></a> [aggregation](#module\_aggregation) | ./aggregation | n/a |
+| <a name="module_delivery_channel_target_s3"></a> [delivery\_channel\_target\_s3](#module\_delivery\_channel\_target\_s3) | ./delivery-channe-target-s3 | n/a |
 
 ## Resources
 
-| Name | Type |
-|------|------|
-| [aws_caller_identity.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+No resources.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_aws_config_settings"></a> [aws\_config\_settings](#input\_aws\_config\_settings) | AWS Config- Aggregation Settings. | <pre>object({<br>    aggregation = optional(object({<br>      aggregator_name      = optional(string, "aws-config-aggregator")<br>      aggregator_role_name = optional(string, "aws-config-aggregator-role")<br>      }),<br>      {<br>        aggregator_name      = "aws-config-aggregator"<br>        aggregator_role_name = "aws-config-aggregator-role"<br>    })<br>    delivery_channel_target = object({<br>      central_s3 = object({<br>        bucket_name = string<br>        kms_cmk = optional(object({<br>          key_alias                   = optional(string, "aws-config-recorder-logs-key")<br>          deletion_window_in_days     = optional(number, 30)<br>          additional_kms_cmk_grants   = string<br>          enable_iam_user_permissions = optional(bool, true)<br>        }), null)<br>        bucket_days_to_glacier    = optional(number, 30)<br>        bucket_days_to_expiration = optional(number, 180)<br>      })<br>    })<br>    account_baseline = object({<br>      iam_role_name         = optional(string, "aws-config-recorder-role")<br>      iam_role_path         = optional(string, "/")<br>      recorder_name         = optional(string, "aws-config-recorder")<br>      delivery_channel_name = optional(string, "aws-config-recorder-delivery-channel")<br>    })<br>  })</pre> | n/a | yes |
+| <a name="input_resource_tags"></a> [resource\_tags](#input\_resource\_tags) | A map of tags to assign to the resources in this module. | `map(string)` | `{}` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_account_id"></a> [account\_id](#output\_account\_id) | account\_id |
-| <a name="output_input"></a> [input](#output\_input) | pass through input |
+| <a name="output_configuration_to_write"></a> [configuration\_to\_write](#output\_configuration\_to\_write) | n/a |
 <!-- END_TF_DOCS -->
 
 <!-- AUTHORS -->
