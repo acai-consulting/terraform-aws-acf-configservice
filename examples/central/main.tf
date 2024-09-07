@@ -74,7 +74,7 @@ module "aggregation" {
 }
 
 module "s3_delivery_channel" {
-  source = "../../delivery-chnl-target-s3"
+  source = "../../delivery-channel-target-s3"
 
   aws_config_settings = local.aws_config_settings
   providers = {

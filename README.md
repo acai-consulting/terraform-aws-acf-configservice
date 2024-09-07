@@ -26,9 +26,10 @@
 
 <!-- FEATURES -->
 ## Features
-* Central Aggregator
-* Central Logging
-* Member Resources (via ACAI PROVISIO)
+
+* Central AWS Config Aggregator
+* Central AWS Config Logging
+* AWS Config Member Resources (via ACAI PROVISIO)
 
 <!-- USAGE -->
 ## Usage
@@ -63,6 +64,41 @@ aws_config = {
     recorder_name         = "aws-config-recorder"
     delivery_channel_name = "aws-config-recorder-delivery-channel"
   }
+}
+```
+
+### Central Resources
+
+```hcl
+module "aggregation" {
+  source = "../../aggregation"
+
+  aws_config_settings = local.aws_config_settings
+  providers = {
+    aws = aws.core_security
+  }
+}
+
+module "s3_delivery_channel" {
+  source = "../../delivery-channel-target-s3"
+
+  aws_config_settings = local.aws_config_settings
+  providers = {
+    aws = aws.core_logging
+  }
+}
+```
+
+### Render Member Resource-Package for ACAI PROVISIO
+
+```hcl
+module "member_package" {
+  source = "../../member/acai-provisio"
+
+  provisio_settings = {
+    provisio_regions = local.regions_settings
+  }
+  aws_config_settings = local.aws_config_settings
 }
 ```
 
