@@ -1,4 +1,4 @@
-# AWS REPLACE_ME Terraform module
+# terraform-aws-acf-configservice Terraform module
 
 <!-- SHIELDS -->
 [![Maintained by acai.gmbh][acai-shield]][acai-url] 
@@ -16,7 +16,7 @@
 </br>
 
 <!-- DESCRIPTION -->
-[Terraform][terraform-url] module to deploy REPLACE_ME resources on [AWS][aws-url]
+[Terraform][terraform-url] module to deploy the central and de-central resources for AWS Config.
 
 
 <!-- ARCHITECTURE -->
@@ -26,7 +26,9 @@
 
 <!-- FEATURES -->
 ## Features
-* Creates a REPLACE_ME
+* Central Aggregator
+* Central Logging
+* Member Resources (via ACAI PROVISIO)
 
 <!-- USAGE -->
 ## Usage
@@ -64,17 +66,6 @@ aws_config = {
 }
 ```
 
-
-
-### REPLACE_ME
-```hcl
-module "REPLACE_ME" {
-  source  = "acai/REPLACE_ME/aws"
-  version = "~> 1.0"
-
-  input1 = "value1"
-}
-```
 
 <!-- EXAMPLES -->
 ## Examples
@@ -144,7 +135,7 @@ See [LICENSE][license-url] for full details.
 [trivy-shield]: https://img.shields.io/badge/trivy-passed-green
 [checkov-shield]: https://img.shields.io/badge/checkov-passed-green
 [release-shield]: https://img.shields.io/github/v/release/acai-consulting/terraform-aws-acf-idc?style=flat&color=success
-[architecture]: ./docs/REPLACE_ME.svg
+[architecture]: ./docs/terraform-aws-acf-configservice.svg
 [release-url]: https://github.com/acai-consulting/REPLACE_ME/releases
 [license-url]: https://github.com/acai-consulting/terraform-aws-acf-idc/tree/main/LICENSE.md
 [terraform-url]: https://www.terraform.io
