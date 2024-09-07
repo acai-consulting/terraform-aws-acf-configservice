@@ -18,9 +18,6 @@
 <!-- DESCRIPTION -->
 [Terraform][terraform-url] module to deploy REPLACE_ME resources on [AWS][aws-url]
 
-https://medium.com/@bachlmayr/enterprise-governance-with-aws-aggregator-and-conformance-packs-29b80370d34a
-https://dev.to/diegop0s/aws-config-for-organizations-3i6p
-
 
 <!-- ARCHITECTURE -->
 ## Architecture
@@ -82,7 +79,10 @@ module "REPLACE_ME" {
 <!-- EXAMPLES -->
 ## Examples
 
-* [`examples/complete`][example-complete-url]
+First run this: [`examples/central`][example-central-url]
+it will render the member Terraform files to here [`examples/member-provisio/rendered`][example-member-provisio-rendered-url]
+
+Then run this: [`examples/member-provisio`][example-member-provisio]
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -149,4 +149,6 @@ See [LICENSE][license-url] for full details.
 [license-url]: https://github.com/acai-consulting/terraform-aws-acf-idc/tree/main/LICENSE.md
 [terraform-url]: https://www.terraform.io
 [aws-url]: https://aws.amazon.com
-[example-complete-url]: https://github.com/acai-consulting/REPLACE_ME/tree/main/examples/complete
+[example-central-url]: ./examples/central
+[example-member-provisio-rendered-url]: ./examples/member-provisio/rendered
+[example-member-provisio]: ./examples/member-provisio

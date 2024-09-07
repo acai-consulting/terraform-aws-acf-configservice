@@ -15,7 +15,6 @@ variable "aws_config_settings" {
       })
     })
     account_baseline = object({
-      # compliant with CIS AWS 
       iam_role_name         = optional(string, "aws-config-recorder-role")
       iam_role_path         = optional(string, "/")
       recorder_name         = optional(string, "aws-config-recorder")
