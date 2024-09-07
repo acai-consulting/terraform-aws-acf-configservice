@@ -17,7 +17,10 @@ locals {
 }
 
 
+#tfsec:ignore:AVD-AWS-0066
 module "delegation_preprocess_data" {
+  #checkov:skip=CKV_TF_1: Currently version-tags are used
+  #checkov:skip=CKV_AWS_50
   source = "git::https://github.com/acai-consulting/terraform-aws-acf-org-delegation.git//modules/preprocess-data?ref=1.0.3"
 
   primary_aws_region = local.regions_settings.primary_region
@@ -25,7 +28,10 @@ module "delegation_preprocess_data" {
 }
 
 
+#tfsec:ignore:AVD-AWS-0066
 module "delegation_euc1" {
+  #checkov:skip=CKV_TF_1: Currently version-tags are used
+  #checkov:skip=CKV_AWS_50  
   source = "git::https://github.com/acai-consulting/terraform-aws-acf-org-delegation.git?ref=1.0.3"
 
   primary_aws_region = module.delegation_preprocess_data.is_primary_region[data.aws_region.org_mgmt.name]

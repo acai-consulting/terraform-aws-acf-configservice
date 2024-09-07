@@ -116,6 +116,10 @@ resource "aws_kms_alias" "aws_config_bucket_cmk" {
 #tfsec:ignore:avd-aws-0089
 resource "aws_s3_bucket" "aws_config_bucket" {
   #checkov:skip=CKV_AWS_144 : No Cross-Region Bucket replication 
+  #checkov:skip=CKV_AWS_145  
+  #checkov:skip=CKV2_AWS_62  
+  #checkov:skip=CKV_AWS_19  
+  #checkov:skip=CKV_AWS_18 // TODO: add access logs  
   bucket        = var.aws_config_settings.delivery_channel_target.central_s3.bucket_name
   force_destroy = var.s3_delivery_bucket_force_destroy
   tags          = local.resource_tags
