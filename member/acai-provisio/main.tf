@@ -23,8 +23,8 @@ locals {
   })
 
   non_primary_regions = tolist(setsubtract(var.provisio_settings.provisio_regions.regions, [var.provisio_settings.provisio_regions.primary_region]))
-  delivery_target_s3 =  try(var.aws_config_settings.delivery_channel_target.central_s3, null)  != null
-  bucket_kms_cmk_arn =  try(var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.arn, "") 
+  delivery_target_s3  = try(var.aws_config_settings.delivery_channel_target.central_s3, null) != null
+  bucket_kms_cmk_arn  = try(var.aws_config_settings.delivery_channel_target.central_s3.kms_cmk.arn, "")
   provisio_package_files = merge(
     {
       "requirements.tf" = templatefile("${path.module}/templates/requirements.tf.tftpl", {

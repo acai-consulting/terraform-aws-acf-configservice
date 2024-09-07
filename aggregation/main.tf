@@ -55,7 +55,7 @@ data "aws_iam_policy_document" "aws_config_aggregator_role_trust" {
 }
 
 resource "aws_iam_role_policy_attachment" "aws_config_aggregator_role_permissions" {
-  role       = aws_iam_role.aws_config_aggregator_role.name
+  role = aws_iam_role.aws_config_aggregator_role.name
   # https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSConfigRoleForOrganizations.html
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSConfigRoleForOrganizations"
 }
