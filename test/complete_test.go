@@ -29,7 +29,7 @@ func TestExampleComplete(t *testing.T) {
 	terraform.InitAndApply(t, terraformMember)
 
 	// Retrieve the 'test_success' output
-	testSuccessOutput := terraform.Output(t, terraformReadConfiguration, "test_success")
+	testSuccessOutput := terraform.Output(t, terraformMember, "test_success")
 
 	// Assert that 'test_success' equals "true"
 	assert.Equal(t, "true", testSuccessOutput, "The test_success output is not true")
