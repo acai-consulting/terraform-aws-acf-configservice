@@ -29,8 +29,8 @@ locals {
     {
       "requirements.tf" = templatefile("${path.module}/templates/requirements.tf.tftpl", {
         non_primary_regions  = local.non_primary_regions
-        terraform_version    = ">= 1.5.7",
-        provider_aws_version = ">= 5.00",
+        terraform_version    = ">= 1.3.10",
+        provider_aws_version = ">= 4.00",
       })
       "aws_config.tf" = templatefile("${path.module}/templates/aws_config.tf.tftpl", {
         primary_region                        = var.provisio_settings.provisio_regions.primary_region
