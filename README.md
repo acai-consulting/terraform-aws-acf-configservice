@@ -1,12 +1,11 @@
 # terraform-aws-acf-configservice Terraform module
 
 <!-- SHIELDS -->
-[![Maintained by acai.gmbh][acai-shield]][acai-url] 
-![module-version-shield]
+[![Maintained by acai.gmbh][acai-shield]][acai-url]
+[![module-version-shield]][module-release-url]
 ![terraform-version-shield]
 ![trivy-shield]
 ![checkov-shield]
-[![Latest Release][release-shield]][release-url]
 
 <!-- LOGO -->
 <div style="text-align: right; margin-top: -60px;">
@@ -167,15 +166,13 @@ See [LICENSE][license-url] for full details.
 [acai-shield]: https://img.shields.io/badge/maintained_by-acai.gmbh-CB224B?style=flat
 [acai-url]: https://acai.gmbh
 [module-version-shield]: https://img.shields.io/badge/module_version-1.0.0-CB224B?style=flat
+[module-release-url]: https://github.com/acai-consulting/terraform-aws-acf-configservice/releases
 [terraform-version-shield]: https://img.shields.io/badge/tf-%3E%3D1.3.10-blue.svg?style=flat&color=blueviolet
 [trivy-shield]: https://img.shields.io/badge/trivy-passed-green
 [checkov-shield]: https://img.shields.io/badge/checkov-passed-green
-[release-shield]: https://img.shields.io/github/v/release/acai-consulting/terraform-aws-acf-idc?style=flat&color=success
 [architecture]: ./docs/terraform-aws-acf-configservice.svg
-[release-url]: https://github.com/acai-consulting/REPLACE_ME/releases
-[license-url]: https://github.com/acai-consulting/terraform-aws-acf-idc/tree/main/LICENSE.md
+[license-url]: https://github.com/acai-consulting/terraform-aws-acf-configservice/tree/main/LICENSE.md
 [terraform-url]: https://www.terraform.io
-[aws-url]: https://aws.amazon.com
 [example-central-url]: ./examples/central
 [example-member-provisio-rendered-url]: ./examples/member-provisio/rendered
 [example-member-provisio]: ./examples/member-provisio
