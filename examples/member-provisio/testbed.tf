@@ -51,7 +51,7 @@ terraform {
     hostname     = "app.terraform.io"
 
     workspaces {
-      name = "aws-testbed"
+      name = "aws-testbed-2"
     }
   }
 }
