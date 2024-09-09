@@ -17,7 +17,7 @@ func TestExampleComplete(t *testing.T) {
 		// Specify a unique state file for the 'central' environment
 		BackendConfig: map[string]interface{}{
 			"key": "central.tfstate",  // Use a unique state file name
-		}
+		},
 	}
 
 	terraformMember := &terraform.Options{
@@ -27,7 +27,7 @@ func TestExampleComplete(t *testing.T) {
 		// Specify a unique state file for the 'central' environment
 		BackendConfig: map[string]interface{}{
 			"key": "member.tfstate",  // Use a unique state file name
-		}
+		},
 	}
 
 	defer terraform.Destroy(t, terraformCentral)
