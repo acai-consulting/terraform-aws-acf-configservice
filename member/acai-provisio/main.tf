@@ -48,7 +48,7 @@ locals {
     },
     var.provisio_settings.import_resources ? ({
       "import.part" = templatefile("${path.module}/templates/import.part.tftpl", {
-        provisio_package_name           = var.provisio_settings.provisio_package_name
+        provisio_package_name           = replace(var.provisio_settings.provisio_package_name, "-", "_")
         primary_region                  = var.provisio_settings.provisio_regions.primary_region
         non_primary_regions             = local.non_primary_regions
         config_iam_role_name            = var.aws_config_settings.account_baseline.iam_role_name
