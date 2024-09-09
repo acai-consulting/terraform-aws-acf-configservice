@@ -14,12 +14,20 @@ func TestExampleComplete(t *testing.T) {
 		TerraformDir: "../examples/central",
 		NoColor:      false,
 		Lock:         true,
+		// Specify a unique state file for the 'central' environment
+		BackendConfig: map[string]interface{}{
+			"key": "central.tfstate",  // Use a unique state file name
+		}
 	}
 
 	terraformMember := &terraform.Options{
 		TerraformDir: "../examples/member-provisio",
 		NoColor:      false,
 		Lock:         true,
+		// Specify a unique state file for the 'central' environment
+		BackendConfig: map[string]interface{}{
+			"key": "member.tfstate",  // Use a unique state file name
+		}
 	}
 
 	defer terraform.Destroy(t, terraformCentral)
