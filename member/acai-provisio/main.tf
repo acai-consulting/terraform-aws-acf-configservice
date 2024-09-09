@@ -46,8 +46,9 @@ locals {
         resource_tags                         = local.resource_tags
       })
     },
-    var.provisio_settings.import_resources ? {
+    var.provisio_settings.import_resources ? ({
       "import.part" = templatefile("${path.module}/templates/import.part.tftpl", {
+        provisio_package_name           = var.provisio_settings.provisio_package_name
         primary_region                  = var.provisio_settings.provisio_regions.primary_region
         non_primary_regions             = local.non_primary_regions
         config_iam_role_name            = var.aws_config_settings.account_baseline.iam_role_name
@@ -55,8 +56,8 @@ locals {
         config_s3_delivery              = local.delivery_target_s3
         config_s3_delivery_channel_name = var.aws_config_settings.account_baseline.delivery_channel_name
       })
-      } : {
-      "import.part" : ""
-    }
+      }) : ({
+      "import.part" = ""
+    })
   )
 }
