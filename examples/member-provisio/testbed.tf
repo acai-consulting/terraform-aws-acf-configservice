@@ -34,11 +34,13 @@ provider "aws" {
 }
 
 provider "aws" {
-  region = "eu-central-1"
+  region = "us-east-2"
+  alias  = "workload_use2"
   assume_role {
     role_arn = "arn:aws:iam::767398146370:role/OrganizationAccountAccessRole" # ACAI AWS Testbed Workload Account
   }
 }
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ BACKEND
@@ -49,7 +51,7 @@ terraform {
     hostname     = "app.terraform.io"
 
     workspaces {
-      name = "aws-testbed"
+      name = "aws-testbed-2"
     }
   }
 }

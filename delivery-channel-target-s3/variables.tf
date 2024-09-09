@@ -1,14 +1,6 @@
 variable "aws_config_settings" {
-  description = "AWS Config- Aggregation Settings."
+  description = "AWS Config S3 Delivery Channel Target Settings."
   type = object({
-    aggregation = optional(object({
-      aggregator_name      = optional(string, "aws-config-aggregator")
-      aggregator_role_name = optional(string, "aws-config-aggregator-role")
-      }),
-      {
-        aggregator_name      = "aws-config-aggregator"
-        aggregator_role_name = "aws-config-aggregator-role"
-    })
     delivery_channel_target = object({
       central_s3 = object({
         bucket_name = string
@@ -31,6 +23,11 @@ variable "aws_config_settings" {
   })
 }
 
+variable "s3_delivery_bucket_force_destroy" {
+  description = "This is for automated testing purposes only!"
+  type        = bool
+  default     = false
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ COMMON
@@ -40,3 +37,4 @@ variable "resource_tags" {
   type        = map(string)
   default     = {}
 }
+

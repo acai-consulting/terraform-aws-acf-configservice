@@ -1,0 +1,176 @@
+# ---------------------------------------------------------------------------------------------------------------------
+# ¦ DATA
+# ---------------------------------------------------------------------------------------------------------------------
+data "aws_caller_identity" "current" {}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ¦ AWS CONFIG ROLE
+# ---------------------------------------------------------------------------------------------------------------------
+resource "aws_iam_role" "aws_config_role_${lower(replace(primary_region, "-", "_"))}" {
+  name               = "${config_iam_role_name}"
+  path               = "${config_iam_role_path}"
+  description        = "IAM Role for AWS Config Recorder"
+  assume_role_policy = data.aws_iam_policy_document.aws_config_role_trust_${lower(replace(primary_region, "-", "_"))}.json
+  tags = {
+${resource_tags}
+  }
+}
+
+data "aws_iam_policy_document" "aws_config_role_trust_${lower(replace(primary_region, "-", "_"))}" {
+  statement {
+    sid     = "TrustPolicy"
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceAccount"
+      values = [
+        data.aws_caller_identity.current.account_id
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "config_role_attachment_${lower(replace(primary_region, "-", "_"))}" {
+  role       = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWS_ConfigRole"
+  depends_on = [
+    aws_config_configuration_recorder.aws_config_recorder_${lower(replace(primary_region, "-", "_"))}    
+  ]
+}
+
+%{ if config_s3_delivery == true ~}
+resource "aws_iam_role_policy" "aws_config_delivery_permission" {
+  name   = "DeliveryPermissionForAwsConfig"
+  role   = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.name
+  policy = data.aws_iam_policy_document.aws_config_delivery_permission_${lower(replace(primary_region, "-", "_"))}.json
+}
+
+# https://docs.aws.amazon.com/config/latest/developerguide/iamrole-permissions.html
+data "aws_iam_policy_document" "aws_config_delivery_permission_${lower(replace(primary_region, "-", "_"))}" {
+%{ if config_s3_delivery_bucket_kms_cmk_arn != "" ~}
+  statement {
+    sid    = "AWSConfigBucketKmsCmk"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey"
+    ]
+    resources = ["${config_s3_delivery_bucket_kms_cmk_arn}"]
+  }
+%{ endif ~}
+  statement {
+    sid    = "AWSConfigBucketPermissionsCheck"
+    effect = "Allow"
+    actions = [
+      "s3:GetBucketAcl",
+      "s3:ListBucket"
+    ]
+    resources = [
+      format(
+        "arn:aws:s3:::%s",
+        "${config_s3_delivery_bucket_name}"
+      )
+    ]
+  }
+  statement {
+    sid    = "AWSConfigBucketDelivery"
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:PutObjectAcl"
+    ]
+    resources = [
+      format(
+        "arn:aws:s3:::%s/AWSLogs/%s/*",
+        "${config_s3_delivery_bucket_name}",
+        data.aws_caller_identity.current.account_id
+      )
+    ]
+    condition {
+      test     = "StringLike"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
+    }
+  }
+}
+%{ endif ~}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ¦ AWS CONFIG RECORDER
+# ---------------------------------------------------------------------------------------------------------------------
+resource "aws_config_configuration_recorder" "aws_config_recorder_${lower(replace(primary_region, "-", "_"))}" {
+  name     = "${config_recorder_name}"
+  role_arn = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.arn
+
+  recording_group {
+    all_supported = true
+    include_global_resource_types = true
+  }
+}
+
+%{ if config_s3_delivery == true ~}
+resource "aws_config_delivery_channel" "aws_config_recorder_${lower(replace(primary_region, "-", "_"))}" {
+  name           = "${config_delivery_channel_name}"
+  s3_bucket_name = "${config_s3_delivery_bucket_name}"
+%{ if config_s3_delivery_bucket_kms_cmk_arn != "" ~}
+  s3_kms_key_arn = "${config_s3_delivery_bucket_kms_cmk_arn}"
+%{ endif ~}
+  depends_on = [
+    aws_config_configuration_recorder.aws_config_recorder_${lower(replace(primary_region, "-", "_"))}
+  ]
+}
+%{ endif ~}
+
+resource "aws_config_configuration_recorder_status" "aws_config_recorder_${lower(replace(primary_region, "-", "_"))}" {
+  name       = aws_config_configuration_recorder.aws_config_recorder_${lower(replace(primary_region, "-", "_"))}.name
+  is_enabled = true
+  depends_on = [
+    aws_config_configuration_recorder.aws_config_recorder_${lower(replace(primary_region, "-", "_"))},    
+    aws_config_delivery_channel.aws_config_recorder_${lower(replace(primary_region, "-", "_"))}    
+  ]
+}
+
+
+%{ for region in non_primary_regions ~}
+resource "aws_config_configuration_recorder" "aws_config_recorder_${lower(replace(region, "-", "_"))}" {
+  name     = "${config_recorder_name}"
+  role_arn = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.arn
+  recording_group {
+    all_supported = true
+    include_global_resource_types = false 
+  }
+  provider = aws.${lower(replace(region, "-", "_"))}
+}
+
+%{ if config_s3_delivery == true ~}
+resource "aws_config_delivery_channel" "aws_config_recorder_${lower(replace(region, "-", "_"))}" {
+  name           = "${config_delivery_channel_name}"
+  s3_bucket_name = "${config_s3_delivery_bucket_name}"
+%{ if config_s3_delivery_bucket_kms_cmk_arn != "" ~}
+  s3_kms_key_arn = "${config_s3_delivery_bucket_kms_cmk_arn}"
+%{ endif ~}
+  depends_on = [
+    aws_config_configuration_recorder.aws_config_recorder_${lower(replace(region, "-", "_"))}
+  ]
+  provider = aws.${lower(replace(region, "-", "_"))}
+}
+%{ endif ~}
+
+resource "aws_config_configuration_recorder_status" "aws_config_recorder_${lower(replace(region, "-", "_"))}" {
+  name       = aws_config_configuration_recorder.aws_config_recorder_${lower(replace(region, "-", "_"))}.name
+  is_enabled = true
+  provider = aws.${lower(replace(region, "-", "_"))}
+  depends_on = [
+    aws_config_configuration_recorder.aws_config_recorder_${lower(replace(region, "-", "_"))},    
+    aws_config_delivery_channel.aws_config_recorder_${lower(replace(region, "-", "_"))}    
+  ]
+}
+%{ endfor ~}
+

@@ -1,28 +1,31 @@
-variable "aws_config_settings" {
-  description = "AWS Config- Aggregation Settings."
+variable "provisio_settings" {
+  description = "ACAI PROVISIO settings"
   type = object({
-    aggregation = optional(object({
-      aggregator_name      = optional(string, "aws-config-aggregator")
-      aggregator_role_name = optional(string, "aws-config-aggregator-role")
-      }),
-      {
-        aggregator_name      = "aws-config-aggregator"
-        aggregator_role_name = "aws-config-aggregator-role"
+    provisio_package_name = optional(string, "aws-config")
+    provisio_regions = object({
+      primary_region = string
+      regions        = list(string)
+    })
+    import_resources = optional(bool, false)
+  })
+}
+
+variable "aws_config_settings" {
+  description = "Account hardening settings"
+  type = object({
+    aggregation = object({
+      aggregation_account_id = string
     })
     delivery_channel_target = object({
-      central_s3 = object({
+      central_s3 = optional(object({
         bucket_name = string
         kms_cmk = optional(object({
-          key_alias                   = optional(string, "aws-config-recorder-logs-key")
-          deletion_window_in_days     = optional(number, 30)
-          additional_kms_cmk_grants   = string
-          enable_iam_user_permissions = optional(bool, true)
+          arn = optional(string, "")
         }), null)
-        bucket_days_to_glacier    = optional(number, 30)
-        bucket_days_to_expiration = optional(number, 180)
-      })
+      }), null)
     })
     account_baseline = object({
+      # compliant with CIS AWS 
       iam_role_name         = optional(string, "aws-config-recorder-role")
       iam_role_path         = optional(string, "/")
       recorder_name         = optional(string, "aws-config-recorder")
@@ -30,7 +33,6 @@ variable "aws_config_settings" {
     })
   })
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ COMMON

@@ -8,20 +8,34 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = ">= 4.0"
+      configuration_aliases = [
+        aws.aggregation,
+        aws.delivery_channel_target_s3
+      ]
     }
   }
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# ¦ DATA
-# ---------------------------------------------------------------------------------------------------------------------
-data "aws_caller_identity" "this" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ¦ LOCALS
+# ¦ CALL SUB-MODULES
 # ---------------------------------------------------------------------------------------------------------------------
-locals {}
+module "aggregation" {
+  source = "./aggregation"
 
-# ---------------------------------------------------------------------------------------------------------------------
-# ¦ MAIN
-# ---------------------------------------------------------------------------------------------------------------------
+  aws_config_settings = var.aws_config_settings
+  resource_tags       = var.resource_tags
+  providers = {
+    aws = aws.aggregation
+  }
+}
+
+module "delivery_channel_target_s3" {
+  source = "./delivery-channe-target-s3"
+
+  aws_config_settings = var.aws_config_settings
+  resource_tags       = var.resource_tags
+  providers = {
+    aws = aws.delivery_channel_target_s3
+  }
+}
