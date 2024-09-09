@@ -16,16 +16,15 @@ func TestExampleComplete(t *testing.T) {
 		Lock:         true,
 	}
 
-	defer terraform.Destroy(t, terraformCentral)
-	terraform.InitAndApply(t, terraformCentral)
-
 	terraformMember := &terraform.Options{
 		TerraformDir: "../examples/member-provisio",
 		NoColor:      false,
 		Lock:         true,
 	}
 
-	defer terraform.Destroy(t, terraformMember)
+	defer terraform.Destroy(t, terraformCentral)
+	
+	terraform.InitAndApply(t, terraformCentral)
 	terraform.InitAndApply(t, terraformMember)
 
 	// Retrieve the 'test_success' output
@@ -33,4 +32,6 @@ func TestExampleComplete(t *testing.T) {
 
 	// Assert that 'test_success' equals "true"
 	assert.Equal(t, "true", testSuccessOutput, "The test_success output is not true")
+
+	terraform.Destroy(t, terraformMember)
 }
