@@ -21,7 +21,7 @@ import {
 }
 %{ endif ~}
 
-%{ for region in non_primary_regions ~}
+%{ for region in secondary_regions ~}
 import {
   to = module.${provisio_package_name}.aws_config_configuration_recorder.aws_config_recorder_${lower(replace(region, "-", "_"))}
   id = "${config_recorder_name}"

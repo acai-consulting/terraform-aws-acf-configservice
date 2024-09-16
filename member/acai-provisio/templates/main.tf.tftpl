@@ -138,7 +138,7 @@ resource "aws_config_configuration_recorder_status" "aws_config_recorder_${lower
 }
 
 
-%{ for region in non_primary_regions ~}
+%{ for region in secondary_regions ~}
 resource "aws_config_configuration_recorder" "aws_config_recorder_${lower(replace(region, "-", "_"))}" {
   name     = "${config_recorder_name}"
   role_arn = aws_iam_role.aws_config_role_${lower(replace(primary_region, "-", "_"))}.arn

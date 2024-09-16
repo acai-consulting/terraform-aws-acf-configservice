@@ -28,8 +28,8 @@ data "aws_caller_identity" "logging" {
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
   regions_settings = {
-    primary_region = "eu-central-1"
-    regions        = ["eu-central-1", "us-east-2"]
+    primary_region    = "eu-central-1"
+    secondary_regions = ["us-east-2"]
   }
   aws_config_settings = {
     aggregation = {
