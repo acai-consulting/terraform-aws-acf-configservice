@@ -11,7 +11,7 @@ variable "provisio_settings" {
   validation {
     condition     = !contains(var.provisio_settings.provisio_regions.secondary_regions, var.provisio_regions.regions.primary_region)
     error_message = "The primary region must not be included in the secondary regions."
-  }  
+  }
 }
 
 variable "aws_config_settings" {
