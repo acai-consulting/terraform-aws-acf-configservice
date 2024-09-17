@@ -29,7 +29,7 @@ locals {
       "module_name"     = "terraform-aws-acf-configservice",
       "module_source"   = "github.com/acai-consulting/terraform-aws-acf-configservice",
       "module_feature"  = "delivery-chnl-target-s3",
-      "module_version"  = /*inject_version_start*/ "1.0.0" /*inject_version_end*/
+      "module_version"  = /*inject_version_start*/ "1.0.1" /*inject_version_end*/
     }
   )
 }
