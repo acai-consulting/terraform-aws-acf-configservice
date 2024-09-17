@@ -3,11 +3,15 @@ variable "provisio_settings" {
   type = object({
     provisio_package_name = optional(string, "aws-config")
     provisio_regions = object({
-      primary_region = string
-      regions        = list(string)
+      primary_region    = string
+      secondary_regions = list(string)
     })
     import_resources = optional(bool, false)
   })
+  validation {
+    condition     = !contains(var.provisio_settings.provisio_regions.secondary_regions, var.provisio_settings.provisio_regions.primary_region)
+    error_message = "The primary region must not be included in the secondary regions."
+  }
 }
 
 variable "aws_config_settings" {

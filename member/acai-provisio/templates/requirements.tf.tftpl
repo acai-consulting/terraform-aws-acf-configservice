@@ -7,7 +7,7 @@ terraform {
         version = "${provider_aws_version}"
         configuration_aliases = [
           aws,
-%{ for region in non_primary_regions ~}
+%{ for region in secondary_regions ~}
           aws.${lower(replace(region, "-", "_"))}
 %{ endfor ~}
         ]

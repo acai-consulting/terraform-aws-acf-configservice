@@ -8,7 +8,7 @@ data "aws_region" "org_mgmt" {
 locals {
   delegations = [
     {
-      regions            = local.regions_settings.regions
+      regions            = concat([local.regions_settings.primary_region], local.regions_settings.secondary_regions)
       aggregation_region = local.regions_settings.primary_region
       service_principal  = "config.amazonaws.com"
       target_account_id  = data.aws_caller_identity.aggregation.account_id
