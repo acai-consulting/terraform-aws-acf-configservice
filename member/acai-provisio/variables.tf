@@ -9,7 +9,7 @@ variable "provisio_settings" {
     import_resources = optional(bool, false)
   })
   validation {
-    condition     = !contains(var.provisio_settings.provisio_regions.secondary_regions, var.provisio_regions.regions.primary_region)
+    condition     = !contains(var.provisio_settings.provisio_regions.secondary_regions, var.provisio_settings.provisio_regions.primary_region)
     error_message = "The primary region must not be included in the secondary regions."
   }
 }
